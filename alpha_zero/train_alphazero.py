@@ -1,8 +1,6 @@
 """
-Name: connect4_train_alphazero.py
-Desc: Training script for AlphaZero on game Connect4.
-Author: Zhihan Yang
-Date: August 14, 2021
+Name: train_alphazero.py
+Desc: Training script for AlphaZero.
 """
 
 import numpy as np
@@ -10,29 +8,48 @@ import torch
 import torch.optim as optim
 import wandb
 from tqdm import tqdm
+import sys
 
-from games import Connect4
+from games import Connect4, Othello
 from algo_components import PolicyValueNet, Buffer, generate_self_play_data, play_one_game_against_pure_mcts, get_device
 
+# Interactive Game Selection
+available_games = [Connect4, Othello]
+print("Select game:")
+for i, game_class in enumerate(available_games):
+    print(f"{i + 1}. {game_class.__name__}")
+
+while True:
+    try:
+        selection = int(input("Enter choice (index): "))
+        if 1 <= selection <= len(available_games):
+            game_klass = available_games[selection - 1]
+            break
+        else:
+            print("Invalid index. Please try again.")
+    except ValueError:
+        print("Invalid input. Please enter a number.")
+
+game_name = game_klass.__name__.lower()
+print(f"Selected game: {game_klass.__name__}")
 
 wandb.init(
     project="alphazero",
     entity="garyliu33-amazon",
     settings=wandb.Settings(_disable_stats=True),
-    name=f'test'
+    name=f'{game_name}_test'
 )
 
 # @@@@@@@@@@ hyper-parameters @@@@@@@@@@
 
-game_klass = Connect4
-num_games_for_training = 3000  # in total, 3000 self-play games will be played
+num_games_for_training = 5000  # in total, 5000 self-play games will be played
 num_grad_steps = 50
 eval_freq = 200  # evaluate alphazero once per 200 self-play games
 eval_num_games = 10  # 10 first-hand games, 10 second-hand games
 buffer_size = 20000
 batch_size = 512
 num_mcts_iter_alphazero = 500
-num_mcts_iter_pure_mcts = 500
+num_mcts_iter_pure_mcts = 5000
 
 # @@@@@@@@@@ important objects @@@@@@@@@@
 
@@ -119,4 +136,4 @@ for game_idx in tqdm(range(num_games_for_training)):  # for each self-play game 
         print(f"Score (second-hand): {round(mean_second_hand_score, 2)}")
         print(f"Score (overall): {round(mean_score, 2)}")
 
-        torch.save(policy_value_net.state_dict(), f"{wandb.run.dir}/pvnet_{game_idx+1}.pth")
+        torch.save(policy_value_net.state_dict(), f"{wandb.run.dir}/{game_name}_pvnet_{game_idx+1}.pth")
