@@ -4,12 +4,13 @@ import numpy as np
 
 from games import Connect4
 from algo_components import Node, mcts_one_iter, PolicyValueNet
+from algo_components.utils import get_device
 
 
 game = Connect4()
 
-policy_value_net = PolicyValueNet(*game.board.shape)
-policy_value_net.load_state_dict(torch.load("trained_models/pvnet_3000.pth", map_location=torch.device('cpu')))
+policy_value_net = PolicyValueNet(*game.board.shape).to(get_device())
+policy_value_net.load_state_dict(torch.load("trained_models/pvnet_3000.pth", map_location=get_device()))
 
 print(game)
 

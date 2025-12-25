@@ -17,7 +17,7 @@ from algo_components import PolicyValueNet, Buffer, generate_self_play_data, pla
 
 wandb.init(
     project="alphazero",
-    entity="yangz2",
+    entity="garyliu33-amazon",
     settings=wandb.Settings(_disable_stats=True),
     name=f'test'
 )
@@ -27,8 +27,8 @@ wandb.init(
 game_klass = Connect4
 num_games_for_training = 3000  # in total, 3000 self-play games will be played
 num_grad_steps = 50
-eval_freq = 1000  # evaluate alphazero once per 1000 self-play games
-eval_num_games = 5  # 5 first-hand games, 5 second-hand games
+eval_freq = 200  # evaluate alphazero once per 200 self-play games
+eval_num_games = 10  # 10 first-hand games, 10 second-hand games
 buffer_size = 20000
 batch_size = 512
 num_mcts_iter_alphazero = 500
@@ -76,6 +76,8 @@ for game_idx in tqdm(range(num_games_for_training)):  # for each self-play game 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            
+            print("iteration = ", n, " loss = ", loss.item())
 
     # evaluate alphazero infrequently against a pure MCTS play
     # this can be very time-consuming, so set eval_freq to a large value and num_mcts_iter_pure_mcts
